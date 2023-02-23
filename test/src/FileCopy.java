@@ -22,8 +22,8 @@ class FileCopyWindow extends JFrame {
         controller = new FileCopyWindowController();
         srcLbl = new JLabel("源文件路径：");
         destLbl = new JLabel("目标文件路径：");
-        srcText = new JTextField(20);
-        destText = new JTextField(20);
+        srcText = new JTextField();
+        destText = new JTextField();
         progressBar = new JProgressBar();
         startBtn = new JButton("开始复制");
         initWindow();
@@ -34,9 +34,13 @@ class FileCopyWindow extends JFrame {
         this.setMinimumSize(new Dimension(400, 200));
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+        } catch (Exception e) {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
         }
 
     }
@@ -114,7 +118,7 @@ class FileCopyService implements Runnable {
         BufferedInputStream in = new BufferedInputStream(new FileInputStream(sourceFile));
         BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(destFile));
         while ((len = in.read(buffer)) != -1) {
-            out.write(buffer, 0, (int) len);
+            out.write(buffer, 0, len);
             written += len;
             w.progressBar.setValue((written / (int) (size / 100)));
         }
@@ -127,8 +131,8 @@ class FileCopyService implements Runnable {
         try {
             this.copy();
         } catch (IOException e) {
-            // TODO
-            throw new RuntimeException(e);
+            JOptionPane.showMessageDialog(null, e.getMessage(),
+                    "错误", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 }
