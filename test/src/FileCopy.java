@@ -1,0 +1,134 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
+
+public class FileCopy {
+    public static void main(String[] args) {
+        FileCopyWindow window = new FileCopyWindow();
+        window.showWindow();
+    }
+}
+
+class FileCopyWindow extends JFrame {
+    FileCopyWindowController controller;
+    JLabel srcLbl, destLbl;
+    JTextField srcText, destText;
+    JProgressBar progressBar;
+    JButton startBtn;
+
+    public FileCopyWindow() {
+        controller = new FileCopyWindowController();
+        srcLbl = new JLabel("源文件路径：");
+        destLbl = new JLabel("目标文件路径：");
+        srcText = new JTextField(20);
+        destText = new JTextField(20);
+        progressBar = new JProgressBar();
+        startBtn = new JButton("开始复制");
+        initWindow();
+        controller.setView(this);
+        startBtn.addActionListener(controller);
+        this.setTitle("文件复制");
+        this.setBounds(320, 240, 400, 200);
+        this.setMinimumSize(new Dimension(400, 200));
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+
+    }
+
+    private void initWindow() {
+        this.setLayout(null);
+        this.add(srcLbl);
+        this.add(srcText);
+        this.add(destLbl);
+        this.add(destText);
+        this.add(progressBar);
+        this.add(startBtn);
+        srcLbl.setBounds(35, 25, 100, 15);
+        srcText.setBounds(125, 20, 250, 25);
+        destLbl.setBounds(35, 55, 100, 15);
+        destText.setBounds(125, 50, 250, 25);
+        progressBar.setBounds(20, 75, 360, 30);
+        startBtn.setBounds(40, 120, 100, 20);
+    }
+
+    public void showWindow() {
+        this.setVisible(true);
+        this.validate();
+    }
+}
+
+class FileCopyWindowController implements ActionListener {
+    private FileCopyWindow w;
+    private FileCopyService s;
+
+    public FileCopyWindowController() {
+        s = new FileCopyService();
+    }
+
+    public void setView(FileCopyWindow view) {
+        this.w = view;
+        s.setView(w);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == w.startBtn) {
+            s.setSourceFile(w.srcText.getText());
+            s.setDestFile(w.destText.getText());
+            new Thread(s).start();
+        }
+    }
+}
+
+class FileCopyService implements Runnable {
+    private FileCopyWindow w;
+    private String sourceFile;
+    private String destFile;
+    private final byte[] buffer;
+
+    public FileCopyService() {
+        buffer = new byte[1024];
+    }
+
+    public void setView(FileCopyWindow view) {
+        this.w = view;
+    }
+
+    public void setSourceFile(String sourceFile) {
+        this.sourceFile = sourceFile;
+    }
+
+    public void setDestFile(String destFile) {
+        this.destFile = destFile;
+    }
+
+    public void copy() throws IOException {
+        int len = 0, written = 0;
+        long size = new File(sourceFile).length();
+        BufferedInputStream in = new BufferedInputStream(new FileInputStream(sourceFile));
+        BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(destFile));
+        while ((len = in.read(buffer)) != -1) {
+            out.write(buffer, 0, (int) len);
+            written += len;
+            w.progressBar.setValue((written / (int) (size / 100)));
+        }
+        in.close();
+        out.close();
+    }
+
+    @Override
+    public void run() {
+        try {
+            this.copy();
+        } catch (IOException e) {
+            // TODO
+            throw new RuntimeException(e);
+        }
+    }
+}
