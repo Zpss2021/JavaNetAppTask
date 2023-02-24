@@ -1,3 +1,7 @@
+// Swing练习-文件拷贝
+// 张起硕-2125060196-版权所有
+// 2023-02-22
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -53,11 +57,11 @@ class FileCopyWindow extends JFrame {
         this.add(destText);
         this.add(progressBar);
         this.add(startBtn);
-        srcLbl.setBounds(35, 25, 100, 15);
-        srcText.setBounds(125, 20, 250, 25);
-        destLbl.setBounds(35, 55, 100, 15);
-        destText.setBounds(125, 50, 250, 25);
-        progressBar.setBounds(20, 75, 360, 30);
+        srcLbl.setBounds(30, 25, 100, 15);
+        srcText.setBounds(120, 20, 250, 25);
+        destLbl.setBounds(30, 55, 100, 15);
+        destText.setBounds(120, 50, 250, 25);
+        progressBar.setBounds(35, 85, 320, 20);
         startBtn.setBounds(40, 120, 100, 20);
     }
 
@@ -69,7 +73,7 @@ class FileCopyWindow extends JFrame {
 
 class FileCopyWindowController implements ActionListener {
     private FileCopyWindow w;
-    private FileCopyService s;
+    private final FileCopyService s;
 
     public FileCopyWindowController() {
         s = new FileCopyService();

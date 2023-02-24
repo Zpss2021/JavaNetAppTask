@@ -1,3 +1,7 @@
+// Swing练习-时间窗口
+// 张起硕-2125060196-版权所有
+// 2023-02-22
+
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
@@ -54,13 +58,13 @@ class TimeShowerWindow extends JFrame {
         timePane.setLayout(new FlowLayout());
         btnPane.setLayout(new FlowLayout());
         timePane.setBorder(new TitledBorder(null, "当前时间", TitledBorder.CENTER,
-                TitledBorder.DEFAULT_POSITION,null,null));
+                TitledBorder.DEFAULT_POSITION, null, null));
         timePane.setPreferredSize(new Dimension(400, 150));
         btnPane.setPreferredSize(new Dimension(200, 50));
         timePane.add(timeLbl);
         btnPane.add(startBtn);
         btnPane.add(stopBtn);
-        timeLbl.setFont(new Font("宋体", Font.PLAIN, 72));
+        timeLbl.setFont(new Font("宋体", Font.BOLD, 72));
     }
 
     public void showWindow() {
@@ -71,48 +75,53 @@ class TimeShowerWindow extends JFrame {
 
 class Timer implements Runnable {
     private TimeShowerWindow w;
+
+    private boolean timerContinue;
+
     public void setView(TimeShowerWindow view) {
         this.w = view;
     }
-    private void timeFlusher() {
-        w.timeLbl.setText(new SimpleDateFormat("HH:mm:ss").format(new Date()));
+
+    private void timeFlusher() throws InterruptedException {
+        while (timerContinue) {
+            w.timeLbl.setText(new SimpleDateFormat("HH:mm:ss").format(new Date()));
+            Thread.sleep(1000);
+        }
     }
+
     @Override
     public void run() {
-        this.timeFlusher();
+        this.timerContinue = true;
         try {
-            Thread.sleep(1000);
+            this.timeFlusher();
         } catch (InterruptedException e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(),
-                    "错误", JOptionPane.INFORMATION_MESSAGE);
+            System.out.println("[DEBUG]" + e);
+            this.timerContinue = false;
         }
     }
 }
 
 class TimeShowerWindowController implements ActionListener {
     private TimeShowerWindow w;
-    private Timer timer;
+    private final Timer timer;
     private Thread timerThread;
+
     public TimeShowerWindowController() {
         timer = new Timer();
     }
+
     public void setView(TimeShowerWindow view) {
         this.w = view;
         timer.setView(view);
     }
+
     @Override
     public void actionPerformed(ActionEvent e) {
-        if(e.getSource() == w.startBtn) {
+        if (e.getSource() == w.startBtn) {
             timerThread = new Thread(timer);
             timerThread.start();
-        }
-        else if(e.getSource()==w.stopBtn){
-            try {
-                timerThread.wait();
-            } catch (InterruptedException ex) {
-                JOptionPane.showMessageDialog(null, ex.getMessage(),
-                        "错误", JOptionPane.INFORMATION_MESSAGE);
-            }
+        } else if (e.getSource() == w.stopBtn) {
+            timerThread.interrupt();
         }
     }
 }
