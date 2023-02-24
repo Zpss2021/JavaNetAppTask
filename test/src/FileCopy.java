@@ -122,6 +122,8 @@ class FileCopyService implements Runnable {
             written += len;
             w.progressBar.setValue((written / (int) (size / 100)));
         }
+        JOptionPane.showMessageDialog(null, "复制完成",
+                "复制", JOptionPane.INFORMATION_MESSAGE);
         in.close();
         out.close();
     }

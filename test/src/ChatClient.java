@@ -88,7 +88,7 @@ class ChatClientWindow extends JFrame {
         hostIPText = new JTextField(9);
         portText = new JTextField(4);
         usernameText = new JTextField(8);
-        sendText = new JTextField(45);
+        sendText = new JTextField(40);
         loginBtn = new JButton("登录");
         logoutBtn = new JButton("退出");
         sendBtn = new JButton("发送");
@@ -176,10 +176,12 @@ class ChatClientWindowController implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == w.sendText)
+        if (e.getSource() == w.sendText) {
             w.chatRecordArea.append("\n【" + w.loginUser.getUsername() + "】" +
                     new SimpleDateFormat("yyyy-MM-dd EEEE HH:mm:ss").format(new Date())
                     + "\n " + w.sendText.getText() + "\n");
+            w.sendText.setText("");
+        }
         else
             switch (e.getActionCommand()) {
                 case "登录" -> {
@@ -241,9 +243,12 @@ class ChatClientWindowController implements ActionListener {
                     w.portText.setEditable(true);
                     w.usernameText.setEditable(true);
                 }
-                case "发送" -> w.chatRecordArea.append("\n【" + w.loginUser.getUsername() + "】" +
-                        new SimpleDateFormat("yyyy-MM-dd EEEE HH:mm:ss").format(new Date())
-                        + "\n " + w.sendText.getText() + "\n");
+                case "发送" -> {
+                    w.chatRecordArea.append("\n【" + w.loginUser.getUsername() + "】" +
+                            new SimpleDateFormat("yyyy-MM-dd EEEE HH:mm:ss").format(new Date())
+                            + "\n " + w.sendText.getText() + "\n");
+                    w.sendText.setText("");
+                }
             }
     }
 }
