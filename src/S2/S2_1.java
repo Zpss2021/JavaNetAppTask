@@ -1,6 +1,8 @@
-// Swing练习-聊天客户端
+// S2_1-聊天客户端
 // 张起硕-2125060196-版权所有
 // 2023-02-22
+
+package S2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,7 +15,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-public class ChatClient {
+public class S2_1 {
     public static void main(String[] args) {
         ChatClientWindow window = new ChatClientWindow();
         window.showWindow();

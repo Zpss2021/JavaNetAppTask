@@ -1,6 +1,8 @@
-// Swing练习-时间窗口
+// S2_3-时间窗口
 // 张起硕-2125060196-版权所有
 // 2023-02-22
+
+package S2;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -10,7 +12,7 @@ import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class TimeShower {
+public class S2_3 {
     public static void main(String[] args) {
         TimeShowerWindow window = new TimeShowerWindow();
         window.showWindow();

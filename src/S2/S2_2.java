@@ -1,6 +1,8 @@
-// Swing练习-文件拷贝
+// S2_2-文件拷贝
 // 张起硕-2125060196-版权所有
 // 2023-02-22
+
+package S2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,7 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 
-public class FileCopy {
+public class S2_2 {
     public static void main(String[] args) {
         FileCopyWindow window = new FileCopyWindow();
         window.showWindow();
