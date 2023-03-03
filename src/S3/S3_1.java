@@ -15,18 +15,96 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 public class S3_1 {
-    public static void main(java.lang.String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
         LANScannerWindow window = new LANScannerWindow();
         window.showWindow();
     }
 }
 
+class LANInterface {
+    NetworkInterface network;
+    InetAddress localIPAddr;
+    String lanHostAddr;
+    String localHostName;
+    String localMACAddr;
+
+    public LANInterface() {
+        try {
+            this.initLANInterface(LANInterface.tryGetRealLANAddress());
+        } catch (UnknownHostException | SocketException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(),
+                    "初始化", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    public LANInterface(String localIP) {
+        try {
+            this.initLANInterface(localIP);
+        } catch (UnknownHostException | SocketException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(),
+                    "初始化", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private void initLANInterface(String localIP) throws UnknownHostException, SocketException {
+        localIPAddr = InetAddress.getByName(localIP);
+        localHostName = localIPAddr.getHostName();
+        network = NetworkInterface.getByInetAddress(localIPAddr);
+        byte[] mac_bytes = network.getHardwareAddress();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < mac_bytes.length; i++) {
+            if (i != 0)
+                sb.append(":");
+            String s = Integer.toHexString(mac_bytes[i] & 0xFF);
+            sb.append(s.length() == 1 ? 0 + s : s);
+        }
+        localMACAddr = sb.toString().toUpperCase();
+        String lanHost = localIPAddr.getHostAddress();
+        int m = 0, n = 0;
+        sb = new StringBuilder();
+        while (n != 3) {
+            sb.append(lanHost.charAt(m++));
+            if (lanHost.charAt(m) == '.')
+                n++;
+        }
+        lanHostAddr = sb.toString();
+    }
+
+    public static String tryGetRealLANAddress() {
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface ni = interfaces.nextElement();
+                if (!ni.isLoopback() && ni.isUp() && !ni.isVirtual()) {
+                    Enumeration<InetAddress> addresses = ni.getInetAddresses();
+                    while (addresses.hasMoreElements()) {
+                        InetAddress addr = addresses.nextElement();
+                        if (addr instanceof Inet4Address && !addr.isLinkLocalAddress()) {
+                            String displayName = NetworkInterface.getByInetAddress(addr).getDisplayName().toLowerCase();
+                            if (!displayName.contains("virtual") && !displayName.contains("vmnet") && !displayName.contains("vbox")
+                                    && !displayName.contains("docker") && !displayName.contains("vethernet")) {
+                                System.out.println("[DEBUG]Real Local IP Address: " + addr.getHostAddress());
+                                return addr.getHostAddress();
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(),
+                    "初始化", JOptionPane.INFORMATION_MESSAGE);
+            System.exit(-1);
+        }
+        return null;
+    }
+}
+
 class LANScanner implements Runnable {
     InetAddress host;
-    final LANScannerWindowController controller;
+    final LANScannerWindowController ctrl;
 
-    public LANScanner(InetAddress hostAddress, LANScannerWindowController controller) {
-        this.controller = controller;
+    public LANScanner(InetAddress hostAddress, LANScannerWindowController ctrl) {
+        this.ctrl = ctrl;
         this.host = hostAddress;
     }
 
@@ -38,87 +116,23 @@ class LANScanner implements Runnable {
     public void run() {
         try {
             if (isHostReachable(host)) {
-                // TODO
-                System.out.println("[DEBUG]" + host.getHostName() + " " + host.getHostAddress() + " , creat  and finish is " + controller.createdThreadsCounter + " " + controller.finishedThreadsCounter);
-                controller.addHost(host);
+                System.out.println("[DEBUG]" + host.getHostName() + " " + host.getHostAddress() + " , creat & finish : " + ctrl.createdThreadsCounter + " " + ctrl.finishedThreadsCounter);
+                ctrl.addHost(host);
             }
         } catch (IOException e) {
-            // TODO
             System.out.println("[DEBUG]" + e.getMessage());
         } finally {
-            controller.addFinishedThreadsCounter();
-        }
-    }
-}
-
-class LANInterface {
-    NetworkInterface network;
-    InetAddress localIPAddr;
-    java.lang.String lanHostAddr;
-    java.lang.String localHostName;
-    java.lang.String localMACAddr;
-
-    public LANInterface() {
-        try {
-            this.initLANInterface(LANInterface.tryGetRealLANAddress());
-        } catch (UnknownHostException | SocketException e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(),
-                    "初始化", JOptionPane.INFORMATION_MESSAGE);
-        }
-    }
-
-    public LANInterface(java.lang.String localIP) {
-        try {
-            this.initLANInterface(localIP);
-        } catch (UnknownHostException | SocketException e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(),
-                    "初始化", JOptionPane.INFORMATION_MESSAGE);
-        }
-    }
-
-    private void initLANInterface(java.lang.String localIP) throws UnknownHostException, SocketException {
-        localIPAddr = InetAddress.getByName(localIP);
-        localHostName = localIPAddr.getHostName();
-        network = NetworkInterface.getByInetAddress(localIPAddr);
-        byte[] mac_bytes = network.getHardwareAddress();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < mac_bytes.length; i++) {
-            if (i != 0)
-                sb.append(":");
-            java.lang.String s = Integer.toHexString(mac_bytes[i] & 0xFF);
-            sb.append(s.length() == 1 ? 0 + s : s);
-        }
-        localMACAddr = sb.toString().toUpperCase();
-        java.lang.String lanHost = localIPAddr.getHostAddress();
-        int m = 0, n = 0;
-        sb = new StringBuilder();
-        while (n != 3) {
-            sb.append(lanHost.charAt(m++));
-            if (lanHost.charAt(m) == '.')
-                n++;
-        }
-        lanHostAddr = sb.toString();
-    }
-
-    public static java.lang.String tryGetRealLANAddress() {
-        try {
-            Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
-            while (networkInterfaces.hasMoreElements()) {
-                NetworkInterface networkInterface = networkInterfaces.nextElement();
-                Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
-                while (inetAddresses.hasMoreElements()) {
-                    InetAddress inetAddress = inetAddresses.nextElement();
-                    if (!inetAddress.isLoopbackAddress() && !inetAddress.isLinkLocalAddress() && inetAddress.isSiteLocalAddress()) {
-                        System.out.println("[DEBUG]Real Local IP Address: " + inetAddress.getHostAddress());
-                        return inetAddress.getHostAddress();
-                    }
+            ctrl.addFinishedThreadsCounter();
+            if (ctrl.createdThreadsCounter == ctrl.end - ctrl.start)
+                if (ctrl.finishedThreadsCounter == ctrl.end - ctrl.start) {
+                    ctrl.win.progressBar.setValue(100);
+                    JOptionPane.showMessageDialog(null, "扫描完成！",
+                            "扫描", JOptionPane.INFORMATION_MESSAGE);
+                    ctrl.win.progressBar.setValue(0);
+                    ctrl.win.scanStatusLbl.setText("就绪");
+                    ctrl.win.startBtn.setText("高速扫描");
                 }
-            }
-        } catch (SocketException e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(),
-                    "初始化", JOptionPane.INFORMATION_MESSAGE);
         }
-        return null;
     }
 }
 
@@ -132,9 +146,9 @@ class LANScannerWindow extends JFrame {
     JButton startBtn;
     JProgressBar progressBar;
     JTable hostsTbl;
-    Vector<java.lang.String> hostsTblColName;
+    Vector<String> hostsTblColName;
     Vector<Vector<String>> hostsTblInfo;
-    DefaultTableModel hostsTblModel;
+    HostsTableModel hostsTblModel;
 
     public LANScannerWindow() {
         controller = new LANScannerWindowController();
@@ -146,8 +160,8 @@ class LANScannerWindow extends JFrame {
         localNameLbl = new JLabel("本机名称：DESKTOP-0000");
         localMACLbl = new JLabel("本机MAC地址：00:00:00:00:00:00");
         beginIPLbl = new JLabel("扫描开始IP");
-        endIPLbl = new JLabel(" 扫描终止IP");
-        scanStatusLbl = new JLabel("初始化中");
+        endIPLbl = new JLabel("扫描终止IP");
+        scanStatusLbl = new JLabel("初始化中...");
         beginIPText = new JTextField("0.0.0", 8);
         endIPText = new JTextField("0.0.0", 8);
         beginHostText = new JTextField(2);
@@ -155,18 +169,18 @@ class LANScannerWindow extends JFrame {
         startBtn = new JButton("高速扫描");
         progressBar = new JProgressBar();
         hostsTbl = new JTable();
-        hostsTblColName = new Vector<>(2);
-        hostsTblInfo = new Vector<>(255);
+        hostsTblColName = new Vector<>();
+        hostsTblInfo = new Vector<>();
         hostsTblColName.add("IP");
         hostsTblColName.add("机器名");
-        hostsTblModel = new DefaultTableModel(hostsTblInfo, hostsTblColName);
+        hostsTblModel = new HostsTableModel(hostsTblInfo, hostsTblColName);
         hostsTbl.setModel(hostsTblModel);
         initWindow();
         controller.setView(this);
         startBtn.addActionListener(controller);
         this.setTitle("局域网扫描器");
-        this.setBounds(320, 240, 640, 400);
-        this.setMinimumSize(new Dimension(600, 320));
+        this.setBounds(640, 340, 640, 400);
+        this.setMinimumSize(new Dimension(600, 240));
         this.setMaximumSize(new Dimension(1080, 1080));
         this.add(infoPane, BorderLayout.NORTH);
         this.add(hostsTblPane, BorderLayout.CENTER);
@@ -186,15 +200,14 @@ class LANScannerWindow extends JFrame {
     private void initWindow() {
         hostsTblPane = new JScrollPane(hostsTbl);
         hostsTblPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-        hostsTblPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
-        infoPane.setPreferredSize(new Dimension(360, 80));
-        progressPane.setPreferredSize(new Dimension(360, 30));
+        infoPane.setPreferredSize(new Dimension(600, 80));
+        progressPane.setPreferredSize(new Dimension(600, 30));
         localIPLbl.setPreferredSize(new Dimension(165, 20));
-        localNameLbl.setPreferredSize(new Dimension(210, 20));
-        startBtn.setPreferredSize(new Dimension(135, 20));
-        scanStatusLbl.setPreferredSize(new Dimension(120, 25));
-        progressBar.setPreferredSize(new Dimension(450, 25));
+        localNameLbl.setPreferredSize(new Dimension(180, 20));
+        startBtn.setPreferredSize(new Dimension(135, 30));
+        scanStatusLbl.setPreferredSize(new Dimension(60, 20));
+        progressBar.setPreferredSize(new Dimension(480, 20));
 
         localInfoPane.add(localIPLbl);
         localInfoPane.add(localNameLbl);
@@ -215,15 +228,15 @@ class LANScannerWindow extends JFrame {
 
         beginIPText.setEditable(false);
         endIPText.setEditable(false);
+        hostsTblPane.setEnabled(false);
     }
 
     private void initLANInterface() {
         lan = new LANInterface();
-        java.lang.String lanHost = lan.localIPAddr.getHostAddress();
+        String lanHost = lan.localIPAddr.getHostAddress();
         localIPLbl.setText("本机IP：" + lanHost);
         localNameLbl.setText("本机名称：" + lan.localHostName);
         localMACLbl.setText("本机MAC地址：" + lan.localMACAddr);
-
         scanStatusLbl.setText("就绪");
         beginIPText.setText(lan.lanHostAddr);
         endIPText.setText(lan.lanHostAddr);
@@ -239,9 +252,9 @@ class LANScannerWindow extends JFrame {
 }
 
 class LANScannerWindowController implements ActionListener {
-    private LANScannerWindow win;
-    private int start;
-    private int end;
+    LANScannerWindow win;
+    int start;
+    int end;
     int createdThreadsCounter;
     int finishedThreadsCounter;
 
@@ -276,6 +289,12 @@ class LANScannerWindowController implements ActionListener {
 
     public void addFinishedThreadsCounter() {
         finishedThreadsCounter++;
+        switch (finishedThreadsCounter % 4) {
+            case 0 -> win.scanStatusLbl.setText("扫描中");
+            case 1 -> win.scanStatusLbl.setText("扫描中.");
+            case 2 -> win.scanStatusLbl.setText("扫描中..");
+            case 3 -> win.scanStatusLbl.setText("扫描中...");
+        }
     }
 
     public void scan() {
@@ -296,29 +315,39 @@ class LANScannerWindowController implements ActionListener {
     }
 
     public synchronized void addHost(InetAddress host) {
-        Vector<String> vec_info = new Vector<>(2);
-        try{
-            vec_info.add(host.getHostAddress());
-            vec_info.add(host.getHostName());
-        win.hostsTblInfo.add(vec_info);
-        }
-        catch (Exception e){
-            JOptionPane.showMessageDialog(null, e.getMessage(),
-                    "扫描", JOptionPane.INFORMATION_MESSAGE);
-        }
-        win.hostsTblModel = new DefaultTableModel(win.hostsTblInfo, win.hostsTblColName);
+        Vector<String> vec_info = new Vector<>();
+        vec_info.add(host.getHostAddress());
+        vec_info.add(host.getHostName());
+        win.hostsTblModel.addRow(vec_info);
         win.hostsTbl.setModel(win.hostsTblModel);
-        win.progressBar.setValue((int)((double)(finishedThreadsCounter + createdThreadsCounter + 1) / (2 * (end - start)) * 100));
+        win.progressBar.setValue(getProgress());
+    }
 
+    private int getProgress() {
+        return (int) Math.ceil((finishedThreadsCounter * 0.8 + createdThreadsCounter * 0.2) / (end - start + 1) * 100);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        win.startBtn.setText("扫描中");
+        win.scanStatusLbl.setText("扫描中...");
+        win.progressBar.setValue(0);
         win.hostsTblInfo.clear();
-        win.hostsTblModel = new DefaultTableModel(win.hostsTblInfo, win.hostsTblColName);
+        win.hostsTblModel = new HostsTableModel(win.hostsTblInfo, win.hostsTblColName);
         win.hostsTbl.setModel(win.hostsTblModel);
         start = Integer.parseInt(win.beginHostText.getText());
         end = Integer.parseInt(win.endHostText.getText());
         this.scan();
+    }
+}
+
+class HostsTableModel extends DefaultTableModel {
+    public HostsTableModel(Vector<? extends Vector> data, Vector<?> columnNames) {
+        super(data, columnNames);
+    }
+
+    @Override
+    public boolean isCellEditable(int row, int column) {
+        return false;
     }
 }
