@@ -1,0 +1,69 @@
+window.onload=function(){ 
+	
+	var curr_index=0;
+	document.gete
+	//var pics=document.getElementById("banner_pic").getElementsByTagName("div");
+	var pics=document.querySelectorAll("#banner_pic div"); 
+	var buttons=document.querySelectorAll("#button li"); 
+	var timer=setInterval(autoChange,5000); 
+	for(var i=0;i<buttons.length;i++){
+
+		buttons[i].onmouseover=function(){
+			if(timer){
+				clearInterval(timer);  
+			}
+			for(var j=0;j<pics.length;j++){
+				if(buttons[j]==this){
+					pics[j].className="current";
+					buttons[j].className="current";
+					curr_index=j;
+				}
+				else{
+					pics[j].className="pic";
+					buttons[j].className="but";
+				}
+			}
+		}
+		
+		buttons[i].onmouseout=function(){
+			timer=setInterval(autoChange,5000);
+		}
+	
+	}
+	function autoChange(){
+		curr_index++; 
+		if(curr_index==pics.length){
+			curr_index=0;
+		}
+		for(var i=0;i<pics.length;i++){
+			if(curr_index==i){
+				pics[i].className="current";
+				buttons[i].className="current";
+			}
+			else{
+				pics[i].className="pic";
+				buttons[i].className="but";
+			}
+		}
+	}	
+}
+	var tabs=document.querySelectorAll("#m_essage li"); //获取所有Tab元素
+	var messages=document.querySelectorAll("#message_con dl"); //获取所有列表容器元素
+	
+	for(var i=0;i<tabs.length;i++){
+		//添加鼠标悬停事件
+		tabs[i].onmouseover=function(){
+			
+			for(var j=0;j<pics.length;j++){
+				if(tabs[j]==this){
+					tabs[j].className="current";
+					messages[j].className="current";
+				}
+				else{
+					tabs[j].className="";
+					messages[j].className="";
+				}
+			}
+		}	
+	
+	}
